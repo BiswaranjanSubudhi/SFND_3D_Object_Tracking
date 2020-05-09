@@ -31,3 +31,13 @@ In this final project, you will implement the missing parts in the schematic. To
 2. Make a build directory in the top level project directory: `mkdir build && cd build`
 3. Compile: `cmake .. && make`
 4. Run it: `./3D_object_tracking`.
+
+## For Rubric Fulfillment
+
+## FP.1 Match 3D Objects
+
+**CRITERIA**
+Implement the method "matchBoundingBoxes", which takes as input both the previous and the current data frames and provides as output the ids of the matched regions of interest (i.e. the boxID property). Matches must be the ones with the highest number of keypoint correspondences.
+
+**Solution**
+We first loop over all the matches to find the unique matched candidate pair. Store the keypoint information from previous and current frame by matching using these attributes 'queryIdx' and 'trainIdx'.Look for this matched points in the previous frame roi and current frame roi. In a 2D array store the frequency of box pairs. Once the box pairs are collected , select the index with max score. This has been implemented in function `matchBoundingBoxes` and can be found in the `camFusion_Student.cpp` file.
