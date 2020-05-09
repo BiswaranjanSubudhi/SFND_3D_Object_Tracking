@@ -154,5 +154,59 @@ void computeTTCLidar(std::vector<LidarPoint> &lidarPointsPrev,
 
 void matchBoundingBoxes(std::vector<cv::DMatch> &matches, std::map<int, int> &bbBestMatches, DataFrame &prevFrame, DataFrame &currFrame)
 {
-    // ...
+    int prev_bbox_size = prevFrame.boundingBoxes.size();
+    int curr_bbox_size = currFrame.boundingBoxes.size();
+    int prev_curr_box_match[prev_bbox_size][curr_bbox_size];
+
+    // loop over to find the matched canddate
+    for (auto it=matches.begin();it < matches.end();it++)
+    {
+        //previous and current point
+        cv::KeyPoint prev_key_pnt = prevFrame.keypoints[it->queryIdx];
+        cv::KeyPoint curr_key_pnt = currFrame.keypoints[it->trainIdx];
+
+        //get curr and prev bb ids
+        std::vector<int> prevFrame_id,currFrame_id;
+        for(int i=0; i<prev_bbox_size;i++)
+        {
+            if(prevFrame.boundingBoxes[i].roi.contains(prev_key_pnt.pt))
+            {
+                prevFrame_id.push_back(i);
+            }
+        }
+        for(int i=0; i<curr_bbox_size;i++)
+        {
+            if(currFrame.boundingBoxes[i].roi.contains(curr_key_pnt.pt))
+            {
+                currFrame_id.push_back(i);
+            }
+        }
+
+        //store the match candidate
+        for(int i:prevFrame_id)
+        {
+            for (int j:currFrame_id)
+            {
+               prev_curr_box_match[i][j] += 1; 
+            }
+        }
+    }
+
+    //loop for each box in prevFrame , find the best in the currFrame based on high score
+    for (int i=0;i<prev_bbox_size;i++)
+    {
+        int max = 0;
+        int select_idx = 0;
+        for (int j=0;j<curr_bbox_size;j++)
+        {
+            if(prev_curr_box_match[i][j] > max)
+            {
+                max = prev_curr_box_match[i][j];
+                select_idx = j;
+            }
+        }
+
+        bbBestMatches[i] = select_idx;
+    }
+
 }
