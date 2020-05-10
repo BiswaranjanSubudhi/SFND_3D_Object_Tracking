@@ -165,7 +165,7 @@ int main(int argc, const char *argv[])
         clusterLidarWithROI((dataBuffer.end()-1)->boundingBoxes, (dataBuffer.end() - 1)->lidarPoints, shrinkFactor, P_rect_00, R_rect_00, RT);
 
         // Visualize 3D objects
-        bVis = false;
+        bVis = true;
         if(bVis)
         {
             show3DObjects((dataBuffer.end()-1)->boundingBoxes, cv::Size(4.0, 20.0), cv::Size(2000, 2000), true);
@@ -289,7 +289,10 @@ int main(int argc, const char *argv[])
                         prevBB = &(*it2);
                     }
                 }
+                
 
+                //cout << "current lidar points size" << currBB->lidarPoints.size() << endl;
+                //cout << "previous lidar points size" << prevBB->lidarPoints.size() << endl;
                 // compute TTC for current match
                 if( currBB->lidarPoints.size()>0 && prevBB->lidarPoints.size()>0 ) // only compute TTC if we have Lidar points
                 {
@@ -310,6 +313,12 @@ int main(int argc, const char *argv[])
                     bVis = true;
                     if (bVis)
                     {
+                        vector<BoundingBox> prev_bb_check = {*prevBB};
+                        vector<BoundingBox> curr_bb_check = {*currBB};
+
+                        //show3DObjects(prev_bb_check, cv::Size(4.0, 10.0), cv::Size(2000, 2000), true,"previous_bb");
+                        //show3DObjects(curr_bb_check, cv::Size(4.0, 10.0), cv::Size(2000, 2000), true, "current_bb");
+
                         cv::Mat visImg = (dataBuffer.end() - 1)->cameraImg.clone();
                         showLidarImgOverlay(visImg, currBB->lidarPoints, P_rect_00, R_rect_00, RT, &visImg);
                         cv::rectangle(visImg, cv::Point(currBB->roi.x, currBB->roi.y), cv::Point(currBB->roi.x + currBB->roi.width, currBB->roi.y + currBB->roi.height), cv::Scalar(0, 255, 0), 2);
