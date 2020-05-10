@@ -165,12 +165,12 @@ int main(int argc, const char *argv[])
         clusterLidarWithROI((dataBuffer.end()-1)->boundingBoxes, (dataBuffer.end() - 1)->lidarPoints, shrinkFactor, P_rect_00, R_rect_00, RT);
 
         // Visualize 3D objects
-        bVis = true;
+        bVis = false;
         if(bVis)
         {
             show3DObjects((dataBuffer.end()-1)->boundingBoxes, cv::Size(4.0, 20.0), cv::Size(2000, 2000), true);
         }
-        bVis = false;
+        
 
         cout << "#4 : CLUSTER LIDAR POINT CLOUD done" << endl;
         
@@ -241,7 +241,7 @@ int main(int argc, const char *argv[])
             vector<cv::DMatch> matches;
             string matcherType = "MAT_BF";        // MAT_BF, MAT_FLANN
             //string descriptorType = "DES_BINARY"; // DES_BINARY, DES_HOG
-            string selectorType = "SEL_KNN";       // SEL_NN, SEL_KNN
+            string selectorType = "SEL_NN";       // SEL_NN, SEL_KNN
 
             matchDescriptors((dataBuffer.end() - 2)->keypoints, (dataBuffer.end() - 1)->keypoints,
                              (dataBuffer.end() - 2)->descriptors, (dataBuffer.end() - 1)->descriptors,
@@ -315,10 +315,23 @@ int main(int argc, const char *argv[])
                     {
                         vector<BoundingBox> prev_bb_check = {*prevBB};
                         vector<BoundingBox> curr_bb_check = {*currBB};
+                        show3DObjects(prev_bb_check, cv::Size(4.0, 10.0), cv::Size(2000, 2000), true,"previous_bb");
+                        show3DObjects(curr_bb_check, cv::Size(4.0, 10.0), cv::Size(2000, 2000), true, "current_bb");
 
-                        //show3DObjects(prev_bb_check, cv::Size(4.0, 10.0), cv::Size(2000, 2000), true,"previous_bb");
-                        //show3DObjects(curr_bb_check, cv::Size(4.0, 10.0), cv::Size(2000, 2000), true, "current_bb");
+                        cv::Mat matchImg = ((dataBuffer.end() - 1)->cameraImg).clone();
+                        cv::drawMatches( (dataBuffer.end() - 2)->cameraImg,(dataBuffer.end() - 2)->keypoints,
+                                            (dataBuffer.end() - 1)->cameraImg,(dataBuffer.end() - 1)->keypoints,
+                                                currBB->kptMatches,matchImg,
+                                                    cv::Scalar::all(-1),cv::Scalar::all(-1),
+                                                        vector<char>(),cv::DrawMatchesFlags::DRAW_RICH_KEYPOINTS);
 
+                        string windowName = " Matching Keypoints analysis";
+                        cv::namedWindow(windowName, 7);
+                        cv::imshow(windowName, matchImg);
+                        cout << "Press key to continue to next frame" << endl;
+                        cv::waitKey(0);
+
+                        //-----------
                         cv::Mat visImg = (dataBuffer.end() - 1)->cameraImg.clone();
                         showLidarImgOverlay(visImg, currBB->lidarPoints, P_rect_00, R_rect_00, RT, &visImg);
                         cv::rectangle(visImg, cv::Point(currBB->roi.x, currBB->roi.y), cv::Point(currBB->roi.x + currBB->roi.width, currBB->roi.y + currBB->roi.height), cv::Scalar(0, 255, 0), 2);
@@ -327,7 +340,7 @@ int main(int argc, const char *argv[])
                         sprintf(str, "TTC Lidar : %f s, TTC Camera : %f s", ttcLidar, ttcCamera);
                         putText(visImg, str, cv::Point2f(80, 50), cv::FONT_HERSHEY_PLAIN, 2, cv::Scalar(0,0,255));
 
-                        string windowName = "Final Results : TTC";
+                        windowName = "Final Results : TTC";
                         cv::namedWindow(windowName, 4);
                         cv::imshow(windowName, visImg);
                         cout << "Press key to continue to next frame" << endl;
