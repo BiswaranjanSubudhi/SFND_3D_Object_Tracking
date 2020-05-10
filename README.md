@@ -41,3 +41,27 @@ Implement the method "matchBoundingBoxes", which takes as input both the previou
 
 **Solution**
 We first loop over all the matches to find the unique matched candidate pair. Store the keypoint information from previous and current frame by matching using these attributes 'queryIdx' and 'trainIdx'.Look for this matched points in the previous frame roi and current frame roi. In a 2D array store the frequency of box pairs. Once the box pairs are collected , select the index with max score. This has been implemented in function `matchBoundingBoxes` and can be found in the `camFusion_Student.cpp` file.
+
+## FP.2 Compute Lidar-based TTC
+
+**CRITERIA**
+Compute the time-to-collision in second for all matched 3D objects using only Lidar measurements from the matched bounding boxes between current and previous frame.
+
+**Solution**
+Used the same model as discussed during the lesson.This has been implemented in function `computeTTCLidar` and can be found in the `camFusion_Student.cpp` file.
+
+## FP.3 Associate Keypoint Correspondences with Bounding Boxes
+
+**CRITERIA**
+Prepare the TTC computation based on camera measurements by associating keypoint correspondences to the bounding boxes which enclose them. All matches which satisfy this condition must be added to a vector in the respective bounding box.
+
+**Solution**
+First calculate mean point match distance in the bbox.Then associate the given keypoints of bounding box with the corresponding matches.This has been implemented in function `clusterKptMatchesWithROI` and can be found in the `camFusion_Student.cpp` file.
+
+## FP.4 Compute Camera-based TTC
+
+**CRITERIA**
+Compute the time-to-collision in second for all matched 3D objects using only keypoint correspondences from the matched bounding boxes between current and previous frame.
+
+**Solution**
+Used the same model as discussed during the lesson.This has been implemented in function `computeTTCCamera` and can be found in the `camFusion_Student.cpp` file.
