@@ -73,13 +73,16 @@ void show3DObjects(std::vector<BoundingBox> &boundingBoxes, cv::Size worldSize, 
         cv::Scalar currColor = cv::Scalar(rng.uniform(0,150), rng.uniform(0, 150), rng.uniform(0, 150));
 
         // plot Lidar points into top view image
+        vector<double> x_vect;
         int top=1e8, left=1e8, bottom=0.0, right=0.0; 
-        float xwmin=1e8, ywmin=1e8, ywmax=-1e8;
+        float xwmin=1e8, ywmin=1e8, ywmax=-1e8,xmean=1e8;
         for (auto it2 = it1->lidarPoints.begin(); it2 != it1->lidarPoints.end(); ++it2)
         {
             // world coordinates
             float xw = (*it2).x; // world position in m with x facing forward from sensor
             float yw = (*it2).y; // world position in m with y facing left from sensor
+
+            x_vect.push_back(xw);
             xwmin = xwmin<xw ? xwmin : xw;
             ywmin = ywmin<yw ? ywmin : yw;
             ywmax = ywmax>yw ? ywmax : yw;
@@ -98,6 +101,10 @@ void show3DObjects(std::vector<BoundingBox> &boundingBoxes, cv::Size worldSize, 
             cv::circle(topviewImg, cv::Point(x, y), 4, currColor, -1);
         }
 
+        // x- mean
+        sort(x_vect.begin(),x_vect.end());
+        xmean = x_vect[x_vect.size()*0.2];
+
         // draw enclosing rectangle
         cv::rectangle(topviewImg, cv::Point(left, top), cv::Point(right, bottom),cv::Scalar(0,0,0), 2);
 
@@ -105,7 +112,7 @@ void show3DObjects(std::vector<BoundingBox> &boundingBoxes, cv::Size worldSize, 
         char str1[200], str2[200];
         sprintf(str1, "id=%d, #pts=%d", it1->boxID, (int)it1->lidarPoints.size());
         putText(topviewImg, str1, cv::Point2f(left-250, bottom+50), cv::FONT_ITALIC, 2, currColor);
-        sprintf(str2, "xmin=%2.2f m, yw=%2.2f m", xwmin, ywmax-ywmin);
+        sprintf(str2, "xmin=%2.2f m,xmean=%2.2f m, yw=%2.2f m", xwmin,xmean, ywmax-ywmin);
         putText(topviewImg, str2, cv::Point2f(left-250, bottom+125), cv::FONT_ITALIC, 2, currColor);  
     }
 
@@ -227,17 +234,26 @@ void computeTTCLidar(std::vector<LidarPoint> &lidarPointsPrev,
                      std::vector<LidarPoint> &lidarPointsCurr, double frameRate, double &TTC)
 {
     // auxiliary variables
-    double dT = 0.1; // time between two measurements in seconds
+    double dT = 1/frameRate; // time between two measurements in seconds
 
     // find closest distance to Lidar points 
     double minXPrev = 1e9, minXCurr = 1e9;
+    
+    vector<double> prev_check;
     for(auto it=lidarPointsPrev.begin(); it!=lidarPointsPrev.end(); ++it) {
-        minXPrev = minXPrev>it->x ? it->x : minXPrev;
+        prev_check.push_back(it->x);
+        //minXPrev = minXPrev>it->x ? it->x : minXPrev;
     }
+    sort(prev_check.begin(),prev_check.end());
+    minXPrev = prev_check[prev_check.size()*0.2];
 
+    vector<double> curr_check;
     for(auto it=lidarPointsCurr.begin(); it!=lidarPointsCurr.end(); ++it) {
-        minXCurr = minXCurr>it->x ? it->x : minXCurr;
+        curr_check.push_back(it->x);
+        //minXCurr = minXCurr>it->x ? it->x : minXCurr;
     }
+    sort(curr_check.begin(),curr_check.end());
+    minXCurr = curr_check[curr_check.size()*0.2];
 
     // compute TTC from both measurements
     TTC = minXCurr * dT / (minXPrev-minXCurr);
@@ -260,29 +276,32 @@ void matchBoundingBoxes(std::vector<cv::DMatch> &matches, std::map<int, int> &bb
     {
         //previous and current point
         cv::KeyPoint prev_key_pnt = prevFrame.keypoints[it->queryIdx];
+        cv::Point prev_pnt = cv::Point(prev_key_pnt.pt.x,prev_key_pnt.pt.y);
+
         cv::KeyPoint curr_key_pnt = currFrame.keypoints[it->trainIdx];
+        cv::Point curr_pnt = cv::Point(curr_key_pnt.pt.x,curr_key_pnt.pt.y);
 
         //get curr and prev bb ids
-        std::vector<int> prevFrame_id,currFrame_id;
+        std::vector<int> prev_box_id,curr_box_id;
         for(int i=0; i<prev_bbox_size;i++)
         {
-            if(prevFrame.boundingBoxes[i].roi.contains(prev_key_pnt.pt))
+            if(prevFrame.boundingBoxes[i].roi.contains(prev_pnt))
             {
-                prevFrame_id.push_back(i);
+                prev_box_id.push_back(i);
             }
         }
         for(int i=0; i<curr_bbox_size;i++)
         {
-            if(currFrame.boundingBoxes[i].roi.contains(curr_key_pnt.pt))
+            if(currFrame.boundingBoxes[i].roi.contains(curr_pnt))
             {
-                currFrame_id.push_back(i);
+                curr_box_id.push_back(i);
             }
         }
 
         //store the match candidate
-        for(int i:prevFrame_id)
+        for(int i:prev_box_id)
         {
-            for (int j:currFrame_id)
+            for (int j:curr_box_id)
             {
                prev_curr_box_match[i][j] += 1; 
             }
