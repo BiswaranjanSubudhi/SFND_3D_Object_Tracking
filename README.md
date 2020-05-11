@@ -65,3 +65,21 @@ Compute the time-to-collision in second for all matched 3D objects using only ke
 
 **Solution**
 Used the same model as discussed during the lesson.This has been implemented in function `computeTTCCamera` and can be found in the `camFusion_Student.cpp` file.
+
+## FP.5 Performance Evaluation 1
+
+**CRITERIA**
+Find examples where the TTC estimate of the Lidar sensor does not seem plausible. Describe your observations and provide a sound argumentation why you think this happened.
+
+**Solution**
+The example images are stored in the folder results/images(img1_TTClidar_new,img2_TTClidar_new,img3_TTClidar_new). In this folder there are 3 images of continuous frames.TTC of lidar increases from 12s to 31s and then drops to 14s.A small change of 0.03 m brings out a big fluctuation. There is ared signal infront and ego car moves slowly.
+
+## FP.5 Performance Evaluation 2
+
+**CRITERIA**
+Run several detector / descriptor combinations and look at the differences in TTC estimation. Find out which methods perform best and also include several examples where camera-based TTC estimation is way off. As with Lidar, describe your observations again and also look into potential reasons.
+
+**Solution**
+The results are avilable in results/PerformanceEvaluation_3D.xlsx. Based on the best combinations selected for the Mid term project tried to compute TTC camera estimate.
+
+There are matched points in the ground and other cars which violates our assumption . The camera TTC is very unstable compared to lidar TTC. Images stored in results/camera_roadmatching.png
