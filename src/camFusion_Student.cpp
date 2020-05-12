@@ -269,7 +269,7 @@ void matchBoundingBoxes(std::vector<cv::DMatch> &matches, std::map<int, int> &bb
 {
     int prev_bbox_size = prevFrame.boundingBoxes.size();
     int curr_bbox_size = currFrame.boundingBoxes.size();
-    int prev_curr_box_match[prev_bbox_size][curr_bbox_size];
+    int prev_curr_box_match[prev_bbox_size][curr_bbox_size]={};
 
     // loop over to find the matched canddate
     for (auto it=matches.begin();it < matches.end();it++)

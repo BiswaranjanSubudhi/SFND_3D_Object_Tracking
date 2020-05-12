@@ -317,7 +317,7 @@ int main(int argc, const char *argv[])
                     ttc_results_camera.push_back(make_pair(imgIndex, ttcCamera));
                     //// EOF STUDENT ASSIGNMENT
 
-                    bVis = true;
+                    bVis = false;
                     if (bVis)
                     {
                         vector<BoundingBox> prev_bb_check = {*prevBB};
